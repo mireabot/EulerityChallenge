@@ -10,6 +10,7 @@ import Foundation
 enum Endpoints {
   case uploadURL
   case petsURL
+  case appID
   
   var url: String {
     switch self {
@@ -17,6 +18,8 @@ enum Endpoints {
       return "https://eulerity-hackathon.appspot.com/upload"
     case .petsURL:
       return "https://eulerity-hackathon.appspot.com/pets"
+    case .appID:
+      return "iOS_Challenge_Michael"
     }
   }
 }

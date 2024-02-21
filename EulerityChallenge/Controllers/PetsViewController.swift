@@ -105,7 +105,7 @@ extension PetsViewController {
     UIImageWriteToSavedPhotosAlbum(imageToSave, nil, nil, nil)
     Task {
       let url = await NetworkManager.shared.fetchUploadURL()
-      NetworkManager.shared.uploadImage(imageToSave, appID: "Test_Michael", originalURL: originalUrl, to: url) { result, error in
+      NetworkManager.shared.uploadImage(imageToSave, appID: Endpoints.appID.url, originalURL: originalUrl, to: url) { result, error in
         if result {
           DispatchQueue.main.async {
             let alert = UIAlertController(title: "Image was submited", message: "It will be saved in photo library and remote server", preferredStyle: UIAlertController.Style.alert)

@@ -13,21 +13,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
   
   
   func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-    // 1.
     guard let windowScene = (scene as? UIWindowScene) else { return }
     
-    // 2.
     let window = UIWindow(windowScene: windowScene)
-    
-    // 3.
     let controller = UINavigationController(rootViewController: PetsViewController())
     controller.navigationBar.prefersLargeTitles = true
     window.rootViewController = controller
-    
-    // 4.
     window.makeKeyAndVisible()
     
-    // 5.
     self.window = window
   }
   

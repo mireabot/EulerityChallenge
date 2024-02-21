@@ -9,7 +9,7 @@ import UIKit
 
 // MARK: Delegate which handles image which will be saved to library
 protocol PetViewDelegate: AnyObject {
-  func didTapSaveButton(in cell: PetView, withImage image: UIImage?)
+    func didTapSaveButton(in view: PetView, withImage image: UIImage?, originalUrl: String?)
 }
 
 // MARK: UI which shows info about pet
@@ -21,12 +21,13 @@ class PetView: UIView {
   private let descriptionLabel = UILabel()
   private let saveButton = UIButton()
   private let stackView = UIStackView()
+  private var pet: Pet?
   
   override init(frame: CGRect) {
     super.init(frame: frame)
+    backgroundColor = .secondarySystemBackground
     setupViews()
     setupLayout()
-    backgroundColor = .secondarySystemBackground
   }
   
   required init?(coder: NSCoder) {
@@ -35,6 +36,7 @@ class PetView: UIView {
   
   // Configurator for cell
   func configure(with pet: Pet) {
+    self.pet = pet
     imageView.loadImage(from: pet.url)
     titleLabel.text = pet.title
     descriptionLabel.text = pet.description
@@ -46,15 +48,14 @@ class PetView: UIView {
     imageView.layer.cornerRadius = 5
     imageView.backgroundColor = .lightGray
     
-    titleLabel.font = UIFont.systemFont(ofSize: 16)
+    titleLabel.font = UIFont.systemFont(ofSize: 17)
     titleLabel.textColor = .black
     
     descriptionLabel.font = UIFont.systemFont(ofSize: 13)
     descriptionLabel.textColor = .systemGray2
     
+    saveButton.configuration = .borderedProminent()
     saveButton.setTitle("Save Image", for: .normal)
-    saveButton.backgroundColor = .systemBlue
-    saveButton.layer.cornerRadius = 5
     
     saveButton.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
     
@@ -85,6 +86,8 @@ class PetView: UIView {
   
   // MARK: Function for save button with passing delegate
   @objc private func saveButtonTapped() {
-    delegate?.didTapSaveButton(in: self, withImage: imageView.image)
+    if let image = imageView.image, let url = pet?.url {
+      delegate?.didTapSaveButton(in: self, withImage: image, originalUrl: url)
+    }
   }
 }

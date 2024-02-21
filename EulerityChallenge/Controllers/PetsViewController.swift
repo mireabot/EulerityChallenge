@@ -7,10 +7,6 @@
 
 import UIKit
 
-protocol PetCellDelegate: AnyObject {
-  func didTapSaveButton(in cell: PetView, withImage image: UIImage?)
-}
-
 class PetsViewController: UIViewController, PetViewDelegate {
   private var scrollView: UIScrollView!
   private var stackView: UIStackView!
@@ -67,10 +63,31 @@ class PetsViewController: UIViewController, PetViewDelegate {
     ])
   }
   
+  // Dynamicly adding views to the stack
+  func displayPets(pets: [Pet]) {
+    stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+    
+    pets.forEach { pet in
+      let petCell = PetView()
+      // Connecting delegate of UI Cell
+      petCell.delegate = self
+      petCell.configure(with: pet)
+      stackView.addArrangedSubview(petCell)
+    }
+  }
+  
   private func fetchPetsDataAndDisplay() {
     NetworkManager.shared.fetchPets { [weak self] pets in
       guard let self = self, let pets = pets else {
-        print("Error fetching pets")
+        DispatchQueue.main.async {
+          let alert = UIAlertController(title: "Something went wrong", message: "Error while fetching pets", preferredStyle: UIAlertController.Style.alert)
+          alert.addAction(UIAlertAction(title: "Retry", style: .default, handler: { _ in
+            self?.fetchPetsDataAndDisplay()
+          }))
+          alert.addAction(UIAlertAction(title: "Close", style: .cancel, handler: nil))
+          
+          self?.present(alert, animated: true, completion: nil)
+        }
         return
       }
       DispatchQueue.main.async {
@@ -79,24 +96,31 @@ class PetsViewController: UIViewController, PetViewDelegate {
       }
     }
   }
-  
-  func displayPets(pets: [Pet]) {
-    stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
-    
-    pets.forEach { pet in
-      let petCell = PetView()
-      petCell.delegate = self
-      petCell.configure(with: pet)
-      stackView.addArrangedSubview(petCell)
-    }
-  }
-  
-  // MARK: - PetCellDelegate Methods
-  func didTapSaveButton(in cell: PetView, withImage image: UIImage?) {
-    print("Image will be saved")
-    guard let imageToSave = image else { return }
+}
+
+// MARK: - PetCellDelegate Methods
+extension PetsViewController {
+  func didTapSaveButton(in view: PetView, withImage image: UIImage?, originalUrl: String?) {
+    guard let imageToSave = image, let originalUrl = originalUrl else { return }
     UIImageWriteToSavedPhotosAlbum(imageToSave, nil, nil, nil)
-    
+    Task {
+      let url = await NetworkManager.shared.fetchUploadURL()
+      NetworkManager.shared.uploadImage(imageToSave, appID: "Test_Michael", originalURL: originalUrl, to: url) { result, error in
+        if result {
+          DispatchQueue.main.async {
+            let alert = UIAlertController(title: "Image was submited", message: "It will be saved in photo library and remote server", preferredStyle: UIAlertController.Style.alert)
+            alert.addAction(UIAlertAction(title: "Close", style: UIAlertAction.Style.default, handler: nil))
+            self.present(alert, animated: true, completion: nil)
+          }
+        } else {
+          DispatchQueue.main.async {
+            let alert = UIAlertController(title: "Something wrong happened", message: "\(String(describing: error?.localizedDescription))", preferredStyle: UIAlertController.Style.alert)
+            alert.addAction(UIAlertAction(title: "Close", style: UIAlertAction.Style.default, handler: nil))
+            self.present(alert, animated: true, completion: nil)
+          }
+        }
+      }
+    }
   }
 }
 
